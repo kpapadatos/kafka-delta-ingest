@@ -25,10 +25,10 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.ACR_SERVER }}/delta-optimizer:${{ github.ref_name }}
-            ${{ secrets.ACR_SERVER }}/delta-optimizer:latest
-          cache-from: type=registry,ref=${{ secrets.ACR_SERVER }}/delta-optimizer:cache
-          cache-to: type=registry,ref=${{ secrets.ACR_SERVER }}/delta-optimizer:cache,mode=max
+            ${{ secrets.ACR_SERVER }}/delta-delta-ingest:${{ github.ref_name }}
+            ${{ secrets.ACR_SERVER }}/delta-delta-ingest:latest
+          cache-from: type=registry,ref=${{ secrets.ACR_SERVER }}/delta-delta-ingest:cache
+          cache-to: type=registry,ref=${{ secrets.ACR_SERVER }}/delta-delta-ingest:cache,mode=max
 
       - name: Update Notion
         env:
