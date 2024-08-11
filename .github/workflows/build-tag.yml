@@ -1,0 +1,39 @@
+name: Build and Push Docker Image
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure Container Registry Login
+        uses: Azure/docker-login@v1
+        with:
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+          login-server: ${{ secrets.ACR_SERVER }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.ACR_SERVER }}/delta-optimizer:${{ github.ref_name }}
+            ${{ secrets.ACR_SERVER }}/delta-optimizer:latest
+          cache-from: type=registry,ref=${{ secrets.ACR_SERVER }}/delta-optimizer:cache
+          cache-to: type=registry,ref=${{ secrets.ACR_SERVER }}/delta-optimizer:cache,mode=max
+
+      - name: Update Notion
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          git fetch --depth=1 origin +refs/tags/*:refs/tags/*
+          TAGGER_NAME=$(git for-each-ref refs/tags/${{ github.ref_name }} --format='%(taggername)') TAG_MESSAGE=$(git tag -l --format='%(contents:subject)' ${{ github.ref_name }}) node ./scripts/update-notion.js
